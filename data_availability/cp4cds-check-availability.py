@@ -156,7 +156,7 @@ def filename_constructor(nens, expts):
         file_ens_string = 'three_ensembles.txt'
 
     # construct filename
-    return file_expt_string + file_ens_string
+    return 'output/' + file_expt_string + file_ens_string
 
 
 def define_all_variables():
