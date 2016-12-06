@@ -13,7 +13,7 @@ def check_availability():
     :return: output to file
     """
     # SET CONSTRAINTS
-    all_vars = define_all_variables()
+    mon_vars, day_vars = define_all_variables()
     core_vars = ['tas', 'tasmax', 'tasmin', 'ps', 'uas', 'vas', 'pr']
     tri_core_expts=['historical', 'piControl', 'rcp45']
     all_core_expts=['historical', 'piControl', 'amip', 'rcp26', 'rcp45', 'rcp60', 'rcp85']
@@ -33,7 +33,7 @@ def check_availability():
             # open file to store output
             with open(filename, "w") as models_writer:
 
-                for var, tables in all_vars.items():
+                for var, tables in mon_vars.items():
                     for table in tables:
                         # For each variable in a given cmor_table
                         # Get the CMIP5 models that have the required number of ensemble members
@@ -42,12 +42,22 @@ def check_availability():
                         valid_models = check_in_all_models(models_by_expt)
 
                         # Calculate this volume of data; write to cache/
+                        print "getting volumes for %s %s %s %s" % (var, table, expts, valid_models)
                         total_volume = get_data_volume(node, project, var, table, expts, latest, distrib, valid_models)
 
                         # Write aggregates to file
                         #models_writer.write("%s, %s, %s, %s\n" % (var, table, len(valid_models), total_volume))
                         print var, table, len(valid_models), total_volume
                         models_writer.write("%s, %s, %s, %s \n" % (var, table, len(valid_models), total_volume))
+
+                for var, tables in day_vars.items():
+                    for table in tables:
+                        models_by_expt = get_models(node, project, var, table, expts, latest, distrib)
+                        valid_models = check_in_all_models(models_by_expt)
+                        total_volume = get_data_volume(node, project, var, table, expts, latest, distrib, valid_models)
+                        print var, table, len(valid_models), total_volume
+                        models_writer.write("%s, %s, %s, %s \n" % (var, table, len(valid_models), total_volume))
+
 
 
 def get_data_volume(node, project, var, table, exptsList, latest, distrib, valid_models):
@@ -67,26 +77,29 @@ def get_data_volume(node, project, var, table, exptsList, latest, distrib, valid
     """
 
     # Format models and experiments a comma separated lists so url is well formatted
-    models = ', '.join(map(str, valid_models))
-    expts = ', '.join(map(str, exptsList))
+    if valid_models:
 
-    url = "https://%(node)s/esg-search/search?type=File" \
-          "&project=%(project)s&experiment=%(expts)s&variable=%(var)s&cmor_table=%(table)s" \
-          "&latest=%(latest)s&distrib=%(distrib)s&model=%(models)s&format=application%%2Fsolr%%2Bjson&limit=10000" \
-          % vars()
+        models = ', '.join(map(str, valid_models))
+        expts = ', '.join(map(str, exptsList))
 
-    resp = requests.get(url)
-    json = resp.json()
+        url = "https://%(node)s/esg-search/search?type=File" \
+              "&project=%(project)s&experiment=%(expts)s&variable=%(var)s&cmor_table=%(table)s" \
+              "&latest=%(latest)s&distrib=%(distrib)s&model=%(models)s&format=application%%2Fsolr%%2Bjson&limit=10000" \
+              % vars()
 
-    # Perform size calculation
-    records = json["response"]["docs"]
-    size = 0
-    for i in range(len(records)):
-        size += records[i]["size"]
+        resp = requests.get(url)
+        json = resp.json()
 
+        # Perform size calculation
+        records = json["response"]["docs"]
+        size = 0
+        for i in range(len(records)):
+            size += records[i]["size"]
 
-    return size / (1024.**3)
-
+        return size / (1024.**3)
+    
+    else:
+        return 0
 
 def get_models(node, project, var, table, expts, latest, distrib):
     """
@@ -188,52 +201,62 @@ def define_all_variables():
                 'ua': ['Amon'], 'va': ['Amon'], 'hur': ['Amon'], 'hus': ['Amon'], 'zg': ['Amon']}
     """
 
-    vars = collections.OrderedDict()
-    vars['tas'] = ['Amon', 'day']
-    vars['ts'] = ['Amon']
-    vars['tasmax'] = ['Amon', 'day']
-    vars['tasmin'] = ['Amon', 'day']
-    vars['psl'] = ['Amon', 'day']
-    vars['ps'] = ['Amon']
-    vars['uas'] = ['Amon']
-    vars['vas'] = ['Amon']
-    vars['sfcWind'] = ['Amon', 'day']
-    vars['hurs'] = ['Amon']
-    vars['huss'] = ['Amon', 'day']
-    vars['pr'] = ['Amon', 'day']
-    vars['prsn'] = ['Amon']
-    vars['evspsbl'] = ['Amon']
-    vars['tauu'] = ['Amon']
-    vars['tauv'] = ['Amon']
-    vars['hfls'] = ['Amon']
-    vars['hfss'] = ['Amon']
-    vars['rlds'] = ['Amon']
-    vars['rlus'] = ['Amon']
-    vars['rsds'] = ['Amon']
-    vars['rsus'] = ['Amon']
-    vars['rsdt'] = ['Amon']
-    vars['rsut'] = ['Amon']
-    vars['rlut'] = ['Amon']
-    vars['clt'] = ['Amon']
-    vars['mrsos'] = ['Lmon']
-    vars['mrro'] = ['Lmon']
-    vars['snw'] = ['LImon']
-    vars['tos'] = ['Omon']
-    vars['sos'] = ['Omon']
-    vars['zos'] = ['Omon']
-    vars['sic'] = ['OImon']
-    vars['sit'] = ['OImon']
-    vars['snd'] = ['OImon']
-    vars['sim'] = ['OImon']
-    vars['tsice'] = ['OImon']
-    vars['ta'] = ['Amon']
-    vars['ua'] = ['Amon']
-    vars['va'] = ['Amon']
-    vars['hur'] = ['Amon']
-    vars['hus'] = ['Amon']
-    vars['zg'] = ['Amon']
+    mvars = collections.OrderedDict()
+    mvars['tas'] = ['Amon', 'day']
+    mvars['ts'] = ['Amon']
+    mvars['tasmax'] = ['Amon', 'day']
+    mvars['tasmin'] = ['Amon', 'day']
+    mvars['psl'] = ['Amon', 'day']
+    mvars['ps'] = ['Amon']
+    mvars['uas'] = ['Amon']
+    mvars['vas'] = ['Amon']
+    mvars['sfcWind'] = ['Amon', 'day']
+    mvars['hurs'] = ['Amon']
+    mvars['huss'] = ['Amon', 'day']
+    mvars['pr'] = ['Amon', 'day']
+    mvars['prsn'] = ['Amon']
+    mvars['evspsbl'] = ['Amon']
+    mvars['tauu'] = ['Amon']
+    mvars['tauv'] = ['Amon']
+    mvars['hfls'] = ['Amon']
+    mvars['hfss'] = ['Amon']
+    mvars['rlds'] = ['Amon']
+    mvars['rlus'] = ['Amon']
+    mvars['rsds'] = ['Amon']
+    mvars['rsus'] = ['Amon']
+    mvars['rsdt'] = ['Amon']
+    mvars['rsut'] = ['Amon']
+    mvars['rlut'] = ['Amon']
+    mvars['clt'] = ['Amon']
+    mvars['mrsos'] = ['Lmon']
+    mvars['mrro'] = ['Lmon']
+    mvars['snw'] = ['LImon']
+    mvars['tos'] = ['Omon']
+    mvars['sos'] = ['Omon']
+    mvars['zos'] = ['Omon']
+    mvars['sic'] = ['OImon']
+    mvars['sit'] = ['OImon']
+    mvars['snd'] = ['OImon']
+    mvars['sim'] = ['OImon']
+    mvars['tsice'] = ['OImon']
+    mvars['ta'] = ['Amon']
+    mvars['ua'] = ['Amon']
+    mvars['va'] = ['Amon']
+    mvars['hur'] = ['Amon']
+    mvars['hus'] = ['Amon']
+    mvars['zg'] = ['Amon']
 
-    return vars
+    dvars = collections.OrderedDict()
+    dvars['tas'] = ['day']
+    dvars['tasmax'] = ['day']
+    dvars['tasmin'] = ['day']
+    dvars['psl'] = ['day']
+    dvars['sfcWind'] = ['day']
+    dvars['huss'] = ['day']
+    dvars['pr'] = ['day']
+
+
+    return mvars, dvars
 
 
 if __name__ == '__main__':
