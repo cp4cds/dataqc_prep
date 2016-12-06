@@ -97,7 +97,7 @@ def get_data_volume(node, project, var, table, exptsList, latest, distrib, valid
             size += records[i]["size"]
 
         return size / (1024.**3)
-    
+
     else:
         return 0
 
@@ -202,18 +202,18 @@ def define_all_variables():
     """
 
     mvars = collections.OrderedDict()
-    mvars['tas'] = ['Amon', 'day']
+    mvars['tas'] = ['Amon']
     mvars['ts'] = ['Amon']
-    mvars['tasmax'] = ['Amon', 'day']
-    mvars['tasmin'] = ['Amon', 'day']
-    mvars['psl'] = ['Amon', 'day']
+    mvars['tasmax'] = ['Amon']
+    mvars['tasmin'] = ['Amon']
+    mvars['psl'] = ['Amon']
     mvars['ps'] = ['Amon']
     mvars['uas'] = ['Amon']
     mvars['vas'] = ['Amon']
-    mvars['sfcWind'] = ['Amon', 'day']
+    mvars['sfcWind'] = ['Amon']
     mvars['hurs'] = ['Amon']
-    mvars['huss'] = ['Amon', 'day']
-    mvars['pr'] = ['Amon', 'day']
+    mvars['huss'] = ['Amon']
+    mvars['pr'] = ['Amon']
     mvars['prsn'] = ['Amon']
     mvars['evspsbl'] = ['Amon']
     mvars['tauu'] = ['Amon']
