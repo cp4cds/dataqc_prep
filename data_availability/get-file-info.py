@@ -7,6 +7,14 @@ import requests
 import itertools
 
 def get_info():
+    """
+    Some code to pull back some basic file info:
+        filename, filesize, forcings, checksum_type, checksum, tracking_id, replica
+
+    :return: Write to txt file:
+        /group_workspaces/jasmin/cp4cds1/data_availability/cache/
+    """
+
 
     mon_vars, day_vars = define_all_variables()
     all_core_expts = ['historical', 'piControl', 'amip', 'rcp26', 'rcp45', 'rcp60', 'rcp85']
@@ -120,11 +128,12 @@ def get_ensembles(node, project, var, table, expt, model, latest, distrib):
     :param project: search project
     :param var: variable of interest
     :param table: cmor_table associated with variable
-    :param expts: list of experiments
+    :param expt: experiment
+    :param model: model
     :param latest: latest True/False search
     :param distrib: distributed search
 
-    :return: List of models satisfying the above search criteria
+    :return: List of ensembles satisfying the above search criteria
     """
 
     url = "https://%(node)s/esg-search/search?type=File" \
@@ -150,7 +159,7 @@ def get_models(node, project, var, table, expt, latest, distrib):
     :param project: search project
     :param var: variable of interest
     :param table: cmor_table associated with variable
-    :param expts: list of experiments
+    :param expt: experiments
     :param latest: latest True/False search
     :param distrib: distributed search
 
