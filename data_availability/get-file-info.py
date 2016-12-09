@@ -105,15 +105,27 @@ def get_file_info(node, project, var, table, expt, model, ensemble, latest, dist
                 filename = records[record]['url'][0]
                 filename = filename.replace("http://esgf-data1.ceda.ac.uk/thredds/fileServer/esg_dataroot", "/badc/cmip5/data")
                 filename = filename.split('|')[0]
+                dataset_id = records[record]['dataset_id']
+                dataset_id = dataset_id.rsplit('|')[0]
+                version =  dataset_id.rsplit('.')[-1]
+                download_url = records[record]['url'][2]
+                variable = records[record]['variable'][0]
+                variable_cf_name = records[record]['cf_standard_name'][0]
+                variable_long_name = records[record]['variable_long_name'][0]
+                variable_units = records[record]['variable_units'][0]
+                experiment_family = records[record]['experiment_family']
+                product = records[record]['product'][0]
                 filesize = records[record]['size']
                 forcings = records[record]['forcing']
                 checksum_type = records[record]['checksum_type'][0]
                 checksum = records[record]['checksum'][0]
                 tracking_id = records[record]['tracking_id'][0]
+                index_node = records[record]['index_node']
                 replica = records[record]['replica']
 
-                cache_writer.write("%s, %s, %s, %s, %s, %s, %s \n"
-                                   % (filename, filesize, forcings, checksum_type, checksum, tracking_id, replica))
+                cache_writer.write("%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s \n"
+                                   % (filename, dataset_id, version, download_url, variable, variable_cf_name, variable_long_name, variable_units, \
+                      experiment_family, product, filesize, forcings, checksum_type, checksum, tracking_id, index_node, replica))
 
 
     return
